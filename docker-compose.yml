@@ -1,0 +1,11 @@
+services:
+  security_pattern_miner:
+    build:
+      context: ./security_pattern_miner
+      dockerfile: securityPatternMiner.dockerfile
+    image: security_pattern_miner:latest
+    volumes:
+      - ./build/volumes/data:/data
+    env_file:
+      - ./.env
+    command: ["python", "./runner.py"]
