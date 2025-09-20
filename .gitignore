@@ -1,2 +1,4 @@
 ./build/volumes/*
 .env
+*/__pycache__/*
+*.pyc
