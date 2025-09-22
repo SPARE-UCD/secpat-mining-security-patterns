@@ -23,9 +23,9 @@ class LibrariesIODependentMiner(DependentMiner):
         self.language = language
 
     def get_dependents(self, package_name: str) -> List[DependentRepositoryInfo]:
-        num_pages = 1
+        num_pages = LibrariesIOConfig.start_page
         dependents = []
-        while num_pages <= LibrariesIOConfig.max_num_pages:
+        while num_pages <= LibrariesIOConfig.start_page + LibrariesIOConfig.max_num_pages:
             dependents_in_page = self.get_dependents_in_page(
                 package_name=package_name,
                 page=num_pages,
@@ -41,7 +41,7 @@ class LibrariesIODependentMiner(DependentMiner):
             dependents.extend(dependents_in_page)
             # Here you would typically make the API call and process the response
             logger.info(f"Fetched {len(dependents_in_page)} dependents from page {num_pages} for package {package_name}")
-            if num_pages == 1:
+            if len(dependents) == 0:
                 self.save_dependents_to_file(package_name, dependents_in_page)
             else:
                 self.append_dependents_to_file(package_name, dependents_in_page)
