@@ -78,6 +78,31 @@ class LibrariesIODependentMiner(DependentMiner):
         with jsonlines.open(file_path, "w") as f:
             f.write_all([dep.dict() for dep in dependents])
         logger.info(f"Saved {len(dependents)} dependents for package {package_name} to {file_path}")
+    
+    def merge_dependents_files(self, package_name: str):
+        """
+        Merge all dependent files for a package into a single file, removing duplicates.
+        This means that all files named like {language}_{package_manager}_{package_name}_dependents_*.jsonl
+        will be merged into one file named {language}_{package_manager}_{package_name}_dependents_1.jsonl
+        """
+        import os
+        import glob
+        if not os.path.exists(LibrariesIOConfig.dependent_repo_info_save_dir):
+            return
+        pattern = os.path.join(LibrariesIOConfig.dependent_repo_info_save_dir, f"{self.language}_{self.package_manager}_{package_name}_dependents_*.jsonl")
+        files = glob.glob(pattern)
+        if not files:
+            return
+        unique_dependents = {}
+        for file in files:
+            with jsonlines.open(file, "r") as f:
+                for dep in f:
+                    unique_dependents[dep['full_name']] = dep
+        merged_file_path = os.path.join(LibrariesIOConfig.dependent_repo_info_save_dir, f"{self.language}_{self.package_manager}_{package_name}_dependents_1.jsonl")
+        with jsonlines.open(merged_file_path, "w") as f:
+            f.write_all(unique_dependents.values())
+        logger.info(f"Merged {len(files)} files into {merged_file_path} with {len(unique_dependents)} unique dependents")
+        
         
     def append_dependents_to_file(self, package_name: str, dependents: List[DependentRepositoryInfo]):
         import os
@@ -87,3 +112,18 @@ class LibrariesIODependentMiner(DependentMiner):
         with jsonlines.open(file_path, "a") as f:
             f.write_all([dep.dict() for dep in dependents])
         logger.info(f"Appended {len(dependents)} dependents for package {package_name} to {file_path}")
+        
+    def clean_saved_dependents(self, package_name: str):
+        # Remove duplicated JSON line (dependent ) in previously saved dependents file if exists
+        import os
+        if not os.path.exists(LibrariesIOConfig.dependent_repo_info_save_dir):
+            return
+        file_path = os.path.join(LibrariesIOConfig.dependent_repo_info_save_dir, f"{self.language}_{self.package_manager}_{package_name}_dependents_{LibrariesIOConfig.start_page}.jsonl")
+        if not os.path.exists(file_path):
+            return
+        unique_dependents = {}
+        with jsonlines.open(file_path, "r") as f:
+            for dep in f:
+                unique_dependents[dep['full_name']] = dep
+        with jsonlines.open(file_path, "w") as f:
+            f.write_all(unique_dependents.values())
