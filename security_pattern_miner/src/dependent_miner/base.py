@@ -10,6 +10,9 @@ from typing import List
 from utils.logger import logger
 import json
 import jsonlines
+from tqdm import tqdm
+
+
 logger.setLevel(logging.INFO)
 class DependentMiner(ABC):
     @abstractmethod
@@ -148,7 +151,12 @@ class LibrariesIODependentMiner(DependentMiner):
         mutual_dependents = {}
         for pkg in package_names:
             dependents = self.load_saved_dependents(pkg)
-            for dep in dependents:
+            logger.info(f"Loaded {len(dependents)} dependents for package: {pkg}")
+            for dep in tqdm(dependents, desc=f"Processing dependents for package: {pkg}"):
                 if dep.full_name not in mutual_dependents:
                     mutual_dependents[dep.full_name] = dep
-        return list(mutual_dependents.values())
+        mutual_dependents = list(mutual_dependents.values())
+        mutual_dependents.sort(key=lambda x: x.full_name)
+        
+        logger.info(f"Found {len(mutual_dependents)} mutual dependents for packages: {', '.join(package_names)}")
+        return mutual_dependents
