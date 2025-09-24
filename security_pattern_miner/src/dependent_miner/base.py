@@ -12,7 +12,6 @@ import json
 import jsonlines
 from tqdm import tqdm
 
-
 logger.setLevel(logging.INFO)
 class DependentMiner(ABC):
     @abstractmethod
@@ -170,3 +169,4 @@ class LibrariesIODependentMiner(DependentMiner):
         with jsonlines.open(file_path, "w") as f:
             f.write_all([dep.dict() for dep in mutual_dependents])
         logger.info(f"Saved {len(mutual_dependents)} mutual dependents for packages {package_names_str} to {file_path}")
+        return file_path
