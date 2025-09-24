@@ -3,3 +3,4 @@ requests
 # python-woc
 jsonlines
 tqdm
+GitPython
