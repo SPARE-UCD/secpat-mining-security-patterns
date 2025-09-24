@@ -1,8 +1,13 @@
 import os
-from git import Repo
 import logging
+
+import git
+from config.crawler import GitCrawlerConfig
+git.refresh(GitCrawlerConfig.git_executable_path)
+import logging
+from git import Repo
+    
 from schemas.libraries_io_response import DependentRepositoryInfo
-from config.crawler import  GitCrawlerConfig
 from abc import ABC, abstractmethod
 
 from utils.logger import logger
@@ -38,8 +43,10 @@ class GitCrawler(RepoCrawler):
         repo_name = dependent_repo.full_name.replace("/", "_")
         repo_url = construct_github_repo_url(
             owner=owner,
-            repo_name=name
-        ) 
+            repo_name=name,
+            username=GitCrawlerConfig.git_username,
+            password=GitCrawlerConfig.git_password
+        )
         local_path = os.path.join(self.cloned_repos_dir, repo_name)
         if os.path.exists(local_path):
             logger.info(f"Repository {repo_name} already cloned at {local_path}")
@@ -56,7 +63,7 @@ class GitCrawler(RepoCrawler):
     def crawl_from_dependent_repos_info(self, dependent_repos: list[DependentRepositoryInfo]):
         successfully_cloned = 0
         start_index = GitCrawlerConfig.start_index
-        end_index = start_index + GitCrawlerConfig.max_num_repos
+        end_index = GitCrawlerConfig.end_index
         for repo in tqdm(dependent_repos[start_index:end_index], desc="Cloning repositories"):
             cloned_path = self.crawl(repo)
             if cloned_path:
