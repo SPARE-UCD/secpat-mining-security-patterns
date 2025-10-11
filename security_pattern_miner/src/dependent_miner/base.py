@@ -11,7 +11,7 @@ from utils.logger import logger
 import json
 import jsonlines
 from tqdm import tqdm
-
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 class DependentMiner(ABC):
     @abstractmethod
@@ -34,18 +34,19 @@ class LibrariesIODependentMiner(DependentMiner):
                 page=num_pages,
                 per_page=self.config.max_per_page
             )
-            if not dependents_in_page:
-                break
+
 
             if len(dependents_in_page) > self.config.max_per_page:
                 logger.warning(f"Received unexpected number of dependents for package {package_name} on page {num_pages}: {len(dependents_in_page)}")
-                break
+                self.save_dependents_to_file(package_name, dependents_in_page)
+                return dependents
             
             dependents.extend(dependents_in_page)
             # Here you would typically make the API call and process the response
             logger.info(f"Fetched {len(dependents_in_page)} dependents from page {num_pages} for package {package_name}")
-            if len(dependents) == 0:
+            if len(dependents_in_page) == 0:
                 self.save_dependents_to_file(package_name, dependents_in_page)
+                return dependents
             else:
                 self.append_dependents_to_file(package_name, dependents_in_page)
             num_pages += 1
@@ -72,7 +73,7 @@ class LibrariesIODependentMiner(DependentMiner):
         else:
             response.raise_for_status()
         # Here you would typically make the API call and process the response
-        
+        return []
     def save_dependents_to_file(self, package_name: str, dependents: List[DependentRepositoryInfo]):
         import os
         if not os.path.exists(self.config.dependent_repo_info_save_dir):
