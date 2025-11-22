@@ -1,0 +1,141 @@
+pattern:
+  name: "Password-Based Authentication"
+  id: "01_01_002"
+  description: "A subject proves they own a claimed identity by providing a correct identifier and the corresponding password"
+  
+dependencies:
+  - fastapi
+  - passlib
+  - bcrypt
+
+repo_metadata_file:
+ - python_Pypi_mutual_dependents_fastapi_passlib_bcrypt.jsonl
+
+roles:
+  enforcer:
+    description: "Ensures the requested action is only performed if the Subject is successfully authenticated"
+    queries:
+      - query: "HTTPBasic Depends HTTPBasicCredentials"
+        description: "Files implementing HTTP Basic authentication"
+
+  verification_manager:
+    description: "Responsible to collect inputs necessary to verify a Subject's password"
+    queries:
+      - query: "CryptContext verify"
+        description: "Files with password verification context"
+      - query: "pwd_context verify plain_password  hashed_password "
+        description: "Direct password verification calls"
+      - query: "bcrypt checkpw password encode"
+        description: "Bcrypt password checking"
+
+  comparator:
+    description: "Compares the hash value of the received password against stored hash"
+    queries:
+      - query: "CryptContext pwd_context verify"
+        description: "Files containing password comparison functions"
+      - query: "pwd_context verify plain_password  hashed_password "
+        description: "Direct password verification calls"
+      - query: "bcrypt checkpw password encode"
+        description: "Bcrypt password checking"
+
+  hasher:
+    description: "Calculates the hash value for a given input"
+    queries:
+      - query: "CryptContext hash"
+        description: "Files with password hashing implementations"
+      - query: "pwd_context hash password "
+        description: "Direct password hashing calls"
+      - query: "bcrypt gensalt hashpw"
+        description: "Bcrypt salt generation and hashing"
+
+  password_store:
+    description: "Keeps track of hash values corresponding to each registered identity"
+    queries:
+      - query: "hashed_password User.query"
+        description: "Files with user password storage queries"
+      
+      - query: "class User password sqlalchemy"
+        description: "SQLAlchemy User models with password fields"
+      
+      - query: "Column String hashed_password"
+        description: "Database column for hashed passwords"
+      
+      - query: "db.query User.filter username"
+        description: "User lookup queries"
+
+  pepper_store:
+    description: "Keeps track of the pepper value(s) used by the system"
+    queries:
+      - query: "Fernet pepper_key encrypt"
+        description: "Files implementing pepper encryption"
+      
+
+  encrypter:
+    description: "Encrypts a given data element using a given cryptographic key"
+    queries:
+      - query: "CryptContext encrypt"
+        description: "Files importing Fernet encryption"
+
+  registrar:
+    description: "Handles the Subject's registration"
+    queries:
+      - query: "app post register"
+        description: "Registration endpoints"
+      - query: "register user db add"
+        description: "User registration functions"
+      - query: "app post signup create_user"
+        description: "Signup endpoints"
+      - query: "new user  User db commit"
+        description: "User creation and database commit"
+
+  password_policy:
+    description: "Contains the rules any password should satisfy"
+    queries:
+      - query: " validator password len"
+        description: "Pydantic password validators"
+      - query: "PasswordPolicy validate"
+        description: "Password policy validation classes"
+      - query: "password len min_length max_length"
+        description: "Password length validation"
+        priority: medium
+      - query: "password lowercase uppercase"
+        description: "Password case  validation"
+        
+  srng:
+    description: "Cryptographically secure random number generator"
+    queries:
+      - query: "secrets token_urlsafe token_bytes"
+        description: "Secure random number generation"
+        priority: high
+      - query: "import secrets token"
+        description: "Secrets module usage for tokens"
+      - query: "import secrets token"
+        description: "Secrets module usage for tokens"
+
+  resetter:
+    description: "Handles password reset requests"
+    queries:
+      - query: "app post reset-password"
+        description: "Password reset request endpoints"
+      - query: "reset_token send_email"
+        description: "Password reset token generation and email sending"
+      - query: "app post forgot-password"
+        description: "Forgot password endpoints"
+      - query: "def reset_password token new_password"
+        description: "Password reset functions"
+
+endpoints:
+  login:
+    queries:
+      - "@app.post /login /signin /auth"
+      - "async def login form_data: OAuth2PasswordRequestForm"
+  
+  register:
+    queries:
+      - "@app.post /register /signup"
+      - "def register_user username password"
+  
+  password_reset:
+    queries:
+      - "@app.post /reset-password /forgot-password"
+      - "reset_token send_email"
