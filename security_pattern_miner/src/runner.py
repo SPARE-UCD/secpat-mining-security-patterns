@@ -109,7 +109,7 @@ class SecurityPatternMiner:
             logger.info("Cleaned saved dependents files. Stopping as --clean_only is set.")
             return  
         
-        if self.args.crawl_only:
+        if self.args.crawl:
             # Step 1: Find mutual dependents
             mutual_dependents = self.dependent_miner.find_mutual_dependents(package_names)
             logger.info(f"Found {len(mutual_dependents)} mutual dependents for packages: {package_names}")
@@ -226,7 +226,7 @@ def create_miner_parser():
     parser.add_argument("--clean_only", action="store_true", help="Flag to only clean previously saved dependent info files and exit")
     
     # Git crawler related arguments
-    parser.add_argument("--crawl_only", action="store_true", help="Flag to only crawl repositories from previously saved dependent info")
+    parser.add_argument("--crawl", action="store_true", help="Flag to only crawl repositories from previously saved dependent info")
     parser.add_argument("--start_index", type=int, default=0, help="Start index for crawling repositories")
     parser.add_argument("--end_index", type=int, default=-1, help="End index for crawling repositories")
     
@@ -253,7 +253,7 @@ if __name__ == "__main__":
     import sys
     
     # Check if this is being run for mining or extracting
-    if "--get_dependents" in sys.argv or "--crawl_only" in sys.argv or "--clean_only" in sys.argv:
+    if "--get_dependents" in sys.argv or "--crawl" in sys.argv or "--clean_only" in sys.argv:
         # Mining mode
         parser = create_miner_parser()
         args = parser.parse_args()
@@ -283,7 +283,7 @@ if __name__ == "__main__":
         extractor.run()
         
     else:
-        print("Error: Please specify either mining arguments (--get_dependents, --crawl_only, --clean_only) or extraction arguments (--construct_queries)")
-        print("For mining: use --get_dependents, --crawl_only, or --clean_only")
+        print("Error: Please specify either mining arguments (--get_dependents, --crawl, --clean_only) or extraction arguments (--construct_queries)")
+        print("For mining: use --get_dependents, --crawl, or --clean_only")
         print("For extraction: use --construct_queries")
         sys.exit(1)
